@@ -2,19 +2,25 @@
 
 local baseURL = "https://novelmania.com.br"
 
---- Extrai o texto do capítulo
---- @param chapterURL string
---- @return string
-local function getPassage(chapterURL)
-	local fullURL = chapterURL
-	if not chapterURL:find("^https?://") then
-		fullURL = baseURL .. chapterURL
-	end
+--- Encurtador de URL obrigatório pelo Shosetsu
+local function shrinkURL(url, _)
+	return url:gsub("^https?://novelmania%.com%.br", "")
+end
 
+--- Expansor de URL obrigatório pelo Shosetsu
+local function expandURL(url, _)
+	if url:find("^https?://") then
+		return url
+	end
+	return baseURL .. url
+end
+
+--- Extrai o texto do capítulo
+local function getPassage(chapterURL)
+	local fullURL = expandURL(chapterURL)
 	local doc = RequestDocument(fullURL)
 	local content = doc:selectFirst(".rich-text-content")
 	if content then
-		-- Retorna o texto formatado dos parágrafos
 		local paragraphs = content:select("p")
 		local textList = ArrayList()
 		for i = 0, paragraphs:size() - 1 do
@@ -23,7 +29,6 @@ local function getPassage(chapterURL)
 				textList:add(p)
 			end
 		end
-		-- Junta os parágrafos com quebra dupla de linha
 		local result = ""
 		for i = 0, textList:size() - 1 do
 			if i > 0 then result = result .. "\n\n" end
@@ -35,36 +40,20 @@ local function getPassage(chapterURL)
 end
 
 --- Extrai os detalhes da novel e a lista de capítulos
---- @param novelURL string
---- @return NovelInfo
 local function parseNovel(novelURL)
-	local fullURL = novelURL
-	if not novelURL:find("^https?://") then
-		fullURL = baseURL .. novelURL
-	end
-
+	local fullURL = expandURL(novelURL)
 	local doc = RequestDocument(fullURL)
 	local novel = NovelInfo()
 
-	-- Título
 	local title = doc:selectFirst("h1")
-	if title then
-		novel.title = title:text()
-	end
+	if title then novel.title = title:text() end
 
-	-- Capa
 	local cover = doc:selectFirst("aside img")
-	if cover then
-		novel.imageURL = cover:attr("src")
-	end
+	if cover then novel.imageURL = cover:attr("src") end
 
-	-- Sinopse
 	local synopsis = doc:selectFirst("[data-testid=novel-synopsis]")
-	if synopsis then
-		novel.description = synopsis:text()
-	end
+	if synopsis then novel.description = synopsis:text() end
 
-	-- Autor
 	local authorEl = doc:selectFirst("dt:contains(Autor) + dd")
 	if authorEl then
 		local authors = ArrayList()
@@ -72,7 +61,6 @@ local function parseNovel(novelURL)
 		novel.authors = authors
 	end
 
-	-- Capítulos
 	local chapterLinks = doc:select("a[href*=/capitulos/]")
 	local chapters = ArrayList()
 
@@ -93,10 +81,7 @@ local function parseNovel(novelURL)
 	return novel
 end
 
---- Pesquisa novels no catálogo
---- @param filters table
---- @param reporter fun(v : string | any)
---- @return Novel[]
+--- Pesquisa novels
 local function search(filters, reporter)
 	local query = filters[QUERY] or ""
 	local searchURL = baseURL .. "/novels"
@@ -114,14 +99,10 @@ local function search(filters, reporter)
 		novel.link = a:attr("href")
 
 		local img = a:selectFirst("img")
-		if img then
-			novel.imageURL = img:attr("src")
-		end
+		if img then novel.imageURL = img:attr("src") end
 
 		local p = a:selectFirst("p")
-		if p then
-			novel.title = p:text()
-		end
+		if p then novel.title = p:text() end
 
 		novels:add(novel)
 	end
@@ -136,6 +117,8 @@ return {
 	imageURL = "https://novelmania.com.br/logo512.png",
 	hasCloudFlare = false,
 	hasSearch = true,
+	shrinkURL = shrinkURL,
+	expandURL = expandURL,
 	parseNovel = parseNovel,
 	getPassage = getPassage,
 	search = search

@@ -1,26 +1,15 @@
 {
-  "authors": [
-    {
-      "id": 1001,
-      "name": "Comunidade",
-      "desc": "Extensão Novel Mania para Shosetsu",
-      "imageURL": "https://novelmania.com.br/logo512.png",
-      "website": "https://novelmania.com.br"
-    }
-  ],
-  "packages": [],
   "libraries": [],
   "scripts": [
     {
-      "id": 55001,
       "name": "Novel Mania",
       "fileName": "NovelMania",
       "imageURL": "https://novelmania.com.br/logo512.png",
+      "id": 55001,
       "lang": "pt",
       "ver": "1.0.0",
       "libVer": "1.0.0",
-      "md5": "230cf75de1ee1ad936223ff2faf326bc",
-      "type": "LuaScript"
+      "md5": "66c90b6f9c83c82a4cbfb63d714e8e93"
     }
   ]
 }
